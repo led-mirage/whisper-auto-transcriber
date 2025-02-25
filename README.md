@@ -65,7 +65,7 @@ Copyright (c) 2025 led-mirage
 
 Whisperの利用料金は、変換元の音声の長さに基づいており、１分あたり`$0.006`※です。例えば１時間の音声または動画ファイルをテキスト化すると、$0.36かかります。
 
-※価格の詳細は詳しくは[OpenAIの料金ページ](https://openai.com/ja-JP/api/pricing/)で確認してください。
+※価格の詳細は[OpenAIの料金ページ](https://openai.com/ja-JP/api/pricing/)で確認してください。
 
 ## 使用しているライブラリ
 
