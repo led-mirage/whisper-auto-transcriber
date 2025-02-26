@@ -2,10 +2,13 @@
 
 Copyright (c) 2025 led-mirage
 
-**Whisper Auto Transcriber**は、音声または動画ファイルからテキストを抽出する便利なツールです。このアプリケーションは、OpenAIのWhisperモデル（API）を使用して高精度の音声認識を行い、結果をテキストファイルとして出力します。
+## 概要
+
+**Whisper Auto Transcriber**は、音声または動画ファイルからテキストを抽出する便利なツールです。このアプリケーションは、OpenAIもしくはAzure OpenAI ServiceのWhisperモデル（API）を使用して高精度の音声認識を行い、結果をテキストファイルとして出力します。
 
 ## 主な機能
 
+- **マルチクラウド対応**: OpenAI と Azure OpenAI Service に対応しています。
 - **対応ファイル形式**: mp3, m4a, mp4, avi, mov, mkv
 - **動画自動変換**: 動画ファイルはffmpegを使用して自動的に音声ファイルに変換されます。
 - **音声の自動分割**: Whisper APIの制限に対応するため、FFmpegで音声ファイルを5分ごとに分割します。
@@ -16,19 +19,21 @@ Copyright (c) 2025 led-mirage
 
 会議の録音など長時間の音声データをテキストとして保存したいときに便利です。出力されたテキストをAIに入力し要約させることで、簡単に議事録を作成できます。
 
-## 必要なもの
+## 事前準備
 
 - Python
     - Python 3.8 以上が必要です。仮想環境（venv）の利用を推奨します。
     - ※このソフトウェアは Python 3.12.0 で動作確認済みです。
 
-- OpenAIのAPIキー
-    - [OpenAI Platform](https://platform.openai.com/)に登録し、APIキーを発行してください。
-    - 取得したAPIキーは、OSの環境変数OPENAI_API_KEYに設定します。
-
 - ffmpeg
     - [ffmpegのサイト](https://www.ffmpeg.org/)からダウンロードし、パスを通してください。
     - ffmpeg version n7.1で動作確認済みです。
+
+- OpenAIのAPIキー
+    - [OpenAI Platform](https://platform.openai.com/)に登録し、APIキーを発行してください。
+
+- または、Azure OpenAI Serviceの設定
+    - Azure OpenAI Serviceを利用する場合は、APIキーとエンドポイントを取得してください。くわえて、**Whisperモデル**をAzure上でデプロイして使用できる状態にしてください。
 
 ## インストール
 
@@ -46,6 +51,11 @@ Copyright (c) 2025 led-mirage
     ```
     pip install -r requirements.txt
     ```
+## 設定
+
+- OpenAIを使用する場合は、環境変数`OPENAI_API_KEY`にAPIキーを設定してください。
+- Azure OpenAI Serviceを使用する場合は、`settings.ini`のAPI typeを`azure`にし、モデル、APIキー、エンドポイントの設定を行ってください。
+- `settings.ini`ではその他詳細な設定が可能です。詳しくは以下の`設定ファイル（settings.ini）`の項目を参照してください。
 
 ## 実行方法
 
@@ -61,6 +71,32 @@ Copyright (c) 2025 led-mirage
     結果は`output`ディレクトリ内にテキストファイルとして出力されます。  
     ファイル名は`[元のファイル名（拡張子を除く）].txt`になります。
 
+## 設定ファイル (`settings.ini`)
+
+アプリケーションを実行する前に、`settings.ini`ファイルを正しく設定してください。このファイルでは、APIタイプやモデル名、APIキーの設定を行います。
+
+### APIセクション
+
+- **type**: 使用するAPIの種類を指定します。`openai` もしくは `azure` を設定してください。デフォルトは`openai`です。
+
+### OpenAIセクション
+
+- **model_name**: 使用するOpenAIモデルを指定します。デフォルトは `whisper-1` です。
+- **api_key**: OpenAIのAPIキーを直接指定する場合に使用します。環境変数を使用する場合は空にしてください。
+- **api_key_env**: APIキーを指定する際の環境変数名を入力してください。デフォルトは `OPENAI_API_KEY` ですが、ユーザーが自由に環境変数名を設定できます。
+
+### Azureセクション
+
+- **model_name**: 使用するAzureモデルを指定します。デフォルトは `whisper` です。
+- **api_key**: AzureのAPIキーを直接指定する場合に使用します。環境変数を使用する場合は空にしてください。
+- **endpoint**: エンドポイントを直接指定する場合に使用します。環境変数を使用する場合は空にしてください。
+- **api_key_env**: APIキーを指定する際の環境変数名を入力してください。デフォルトは `AZURE_OPENAI_API_KEY` ですが、ユーザーが自由に設定できます。
+- **endpoint_env**: エンドポイントを指定する際の環境変数名を入力してください。デフォルトは `AZURE_OPENAI_ENDPOINT` ですが、ユーザーが自由に設定できます。
+
+### Generalセクション
+
+- **audio_segment_time**: 音声を分割する単位を秒単位で指定します。デフォルトは300秒です。
+
 ## Whisper APIの利用料金
 
 Whisperの利用料金は、変換元の音声の長さに基づいており、１分あたり`$0.006`※です。例えば１時間の音声または動画ファイルをテキスト化すると、$0.36かかります。
@@ -70,7 +106,7 @@ Whisperの利用料金は、変換元の音声の長さに基づいており、�
 ## 使用しているライブラリ
 
 ### 🔖 openai 1.63.2
-ホームページ： https://github.com/openai/openai-python
+ホームページ： https://github.com/openai/openai-python  
 ライセンス： Apache License 2.0
 
 ## ライセンス
@@ -80,6 +116,12 @@ Whisperの利用料金は、変換元の音声の長さに基づいており、�
 本アプリケーションは MITライセンス の下で公開されています。詳細については、プロジェクトに含まれる LICENSE ファイルを参照してください。
 
 ## バージョン履歴
+
+### 2.0.0 (2025/02/27)
+
+- HotFix: 動画を指定した場合、テキスト化が途中で停止する問題を修正しました。
+- Azure OpenAI Serviceに対応しました。
+- 設定を`settings.ini`ファイルに移動しました。
 
 ### 1.0.0 (2025/02/26)
 

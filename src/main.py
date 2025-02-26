@@ -11,16 +11,18 @@ from pathlib import Path
 
 import openai
 
+from settings import Settings
+
 
 APP_NAME = "Whisper Auto Transcriber"
-APP_VERSION = "1.0.0"
+APP_VERSION = "2.0.0"
 COPYRIGHT = "© 2025 led-mirage"
 
+SETTINGS_FILE = "settings.ini"
 AUDIO_EXTENSIONS = [".mp3", ".m4a"]
 VIDEO_EXTENSIONS = [".mp4", ".avi", ".mov", ".mkv"]
 WORK_DIR = "./workdir"
 OUTPUT_DIR = "./output"
-SEGMENT_TIME = 300
 
 
 def display_app_title():
@@ -36,21 +38,6 @@ def display_app_title():
     print(f" {COPYRIGHT}")
     print("-" * 50)
     print("")
-
-
-def check_openai_api_key():
-    """
-    環境変数OPENAI_API_KEYが設定されているかを確認します。
-
-    戻り値:
-        None
-
-    例外:
-        SystemExit: 環境変数が設定されていない場合はプログラムを終了します。
-    """
-    if not os.getenv("OPENAI_API_KEY"):
-        print("環境変数OPENAI_API_KEYが設定されていません。APIキーを設定してください。")
-        sys.exit(1)
 
 
 def check_ffmpeg_installed():
@@ -93,7 +80,7 @@ def get_target_file_path():
             print(f"対応しているファイル形式: {", ".join(AUDIO_EXTENSIONS + VIDEO_EXTENSIONS)}\n")
 
 
-def extract_audio_from_video(video_path, output_dir):
+def extract_audio_from_video(video_path:str, output_dir:str):
     """
     動画ファイルから音声を抽出し、指定したディレクトリに保存します。
 
@@ -128,7 +115,7 @@ def extract_audio_from_video(video_path, output_dir):
     return audio_path
 
 
-def delete_files_in_directory(directory):
+def delete_files_in_directory(directory:str):
     """
     指定されたディレクトリ内のすべてのファイルを削除します（サブディレクトリのファイルは削除しません）。
 
@@ -148,7 +135,7 @@ def delete_files_in_directory(directory):
             os.remove(item_path)
 
 
-def split_audio_file(input_path, output_dir, segment_time=300):
+def split_audio_file(input_path:str, output_dir:str, segment_time:int=300):
     """
     音声ファイルを指定された秒数ごとに分割して、指定されたディレクトリに保存します。
 
@@ -158,7 +145,7 @@ def split_audio_file(input_path, output_dir, segment_time=300):
         segment_time (int): 分割する秒数 (デフォルトは300秒 = 5分)。
 
     戻り値:
-        None
+        list: 分割された音声ファイルのパスのリスト。
 
     例外：
         subprocess.CalledProcessError: FFmpegの処理に失敗した場合にスローされます。
@@ -181,57 +168,77 @@ def split_audio_file(input_path, output_dir, segment_time=300):
         os.path.join(output_dir, f"{filename_without_ext}-%03d{file_extension.lower()}")
     ], check=True)
 
+    dir_path = Path(output_dir)
+    audio_files = [file for file in dir_path.iterdir() if file.is_file() and file.suffix.lower() in AUDIO_EXTENSIONS and file.name != filename]
+    return audio_files
 
-def transcript_with_whisper(input_path):
+
+def create_client(settings:Settings):
+    """
+    OpenAI APIのクライアントを作成します。
+
+    引数:
+        settings (Settings): 設定情報を保持するSettingsクラスのインスタンス。
+
+    戻り値:
+        openai.OpenAI: OpenAI APIのクライアント。
+    """
+    type = settings.get_api_type()
+    if type == "openai":
+        client = openai.OpenAI(api_key=settings.get_api_key())
+    elif type == "azure":
+        client = openai.AzureOpenAI(
+            api_key = settings.get_api_key(),
+            api_version = "2024-02-01",
+            azure_endpoint = settings.get_endpoint()
+        )
+    return client
+
+
+def transcript_with_whisper(settings:Settings, input_path:str):
     """
     音声ファイルの音声認識を行い、結果をテキストファイルに保存します。
 
     引数:
+        settings (Settings): 設定情報を保持するSettingsクラスのインスタンス。
         input_path (str): 音声認識を行う音声ファイルのパス。
 
     戻り値:
         str: 音声認識の結果として得られたテキスト。
     """
-    client = openai.OpenAI()
+    client = create_client(settings)
     with open(input_path, "rb") as audio_file:
         transcription = client.audio.transcriptions.create(
-            model="whisper-1", 
+            model=settings.get_model_name(), 
             file=audio_file
         )
     return transcription.text
 
 
-def process_transcription_files(input_dir, output_dir, output_filename):
+def process_transcription_files(settings:Settings, input_files:list, output_dir:str, output_filename:str):
     """
     指定されたディレクトリ内のすべての音声ファイルに対して、音声認識を行い、テキストファイルに出力します。
 
     引数:
-        input_dir (str): 音声認識を行う音声ファイルが保存されているディレクトリのパス。
+        settings (Settings): 設定情報を保持するSettingsクラスのインスタンス。
+        input_files (list): 音声ファイルのパスのリスト。
         output_dir (str): テキストファイルを保存するディレクトリのパス。
         output_filename (str): 出力するテキストファイルのファイル名。
 
     戻り値:
         None
     """
-    # 入力ディレクトリが存在しない場合は何もしない
-    dir_path = Path(input_dir)
-    if not dir_path.is_dir():
-        return
-
     # 出力ディレクトリを作成（既に存在する場合は何もしない）
     os.makedirs(output_dir, exist_ok=True)
 
     # 入力ディレクトリ内の音声ファイルに対して音声認識を行い、テキストファイルに保存
     all_text = ""
     temp_file = []
-
-    audio_files = [file for file in dir_path.iterdir() if file.is_file() and file.suffix.lower() in AUDIO_EXTENSIONS]
-    total_files = len(audio_files)
-
-    for index, file in enumerate(audio_files, start=1):
+    total_files = len(input_files)
+    for index, file in enumerate(input_files, start=1):
         file_path = str(file)
         print(f"変換中（{index}/{total_files}）: {file_path} ...", end=" ", flush=True)
-        text = transcript_with_whisper(file_path)
+        text = transcript_with_whisper(settings, file_path)
         all_text += text + "\n"
         filename = os.path.basename(file_path)
         output_name = os.path.splitext(filename)[0] + ".txt"
@@ -257,8 +264,12 @@ def main():
     """
     display_app_title()
 
-    # 環境変数 OPENAI_API_KEY が設定されているか確認
-    check_openai_api_key()
+    # 設定ファイルを読み込む
+    settings = Settings(SETTINGS_FILE)
+    is_valid, error_message = settings.validate()
+    if not is_valid:
+        print(f"{error_message}\n設定ファイル `settings.ini` を確認してください。\n")
+        sys.exit(1)
 
     # FFmpegがインストールされているか確認
     check_ffmpeg_installed()
@@ -285,7 +296,7 @@ def main():
     # 音声ファイルを分割
     print("音声を分割します。")
     try:
-        split_audio_file(audio_file, WORK_DIR, SEGMENT_TIME)
+        split_files = split_audio_file(audio_file, WORK_DIR, settings.get_audio_segment_time())
     except Exception as e:
         print("音声の分割に失敗しました。プログラムを終了します。")
         print(f"エラー: {e}")
@@ -297,7 +308,7 @@ def main():
     output_filename = os.path.basename(audio_file)
     output_filename = os.path.splitext(output_filename)[0] + ".txt"
     try:
-        process_transcription_files(WORK_DIR, OUTPUT_DIR, output_filename)
+        process_transcription_files(settings, split_files, OUTPUT_DIR, output_filename)
     except Exception as e:
         print("音声のテキスト化に失敗しました。プログラムを終了します。")
         print(f"エラー: {e}")
