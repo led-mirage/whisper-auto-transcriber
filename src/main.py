@@ -5,6 +5,7 @@
 # ライセンスの詳細については、このプロジェクトのLICENSEファイルを参照してください。
 
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -15,7 +16,8 @@ from settings import Settings
 
 
 APP_NAME = "Whisper Auto Transcriber"
-APP_VERSION = "2.0.0"
+APP_VERSION = "3.0.0"
+EXE_NAME = "audioscribe.exe"
 COPYRIGHT = "© 2025 led-mirage"
 
 SETTINGS_FILE = "settings.ini"
@@ -32,12 +34,43 @@ def display_app_title():
     戻り値:
         None
     """
-    print("-" * 50)
-    print(f" {APP_NAME} v{APP_VERSION}")
+    print("-" * 60)
+    if getattr(sys, "frozen", False):
+        print(f" {APP_NAME} ({EXE_NAME}) v{APP_VERSION}")
+    else:
+        print(f" {APP_NAME} v{APP_VERSION}")
     print("")
     print(f" {COPYRIGHT}")
-    print("-" * 50)
+    print("-" * 60)
     print("")
+
+
+def get_ffmpeg_path():
+    """
+    FFmpegのパスを取得します。
+
+    戻り値:
+        str: FFmpegのパス。FFmpegが見つからない場合はNoneを返します。
+    """
+    # バンドルされたFFmpegのパスを取得
+    if getattr(sys, "frozen", False):
+        # PyInstallerなどでパッケージ化された場合
+        application_path = os.path.dirname(sys.executable)
+    else:
+        # 通常のPythonスクリプトとして実行される場合
+        application_path = os.path.dirname(os.path.abspath(__file__))
+    
+    if sys.platform.startswith("win"):
+        ffmpeg_path = os.path.join(application_path, "ffmpeg", "ffmpeg.exe")
+    else:
+        ffmpeg_path = os.path.join(application_path, "ffmpeg", "ffmpeg")
+
+    if os.path.exists(ffmpeg_path):
+        # バンドルされたFFmpegが見つかった場合は、そのパスを返す
+        return ffmpeg_path
+    else:
+        # バンドルされたFFmpegが見つからない場合は、システムのFFmpegを探す
+        return shutil.which("ffmpeg")
 
 
 def check_ffmpeg_installed():
@@ -50,10 +83,8 @@ def check_ffmpeg_installed():
     例外:
         SystemExit: 環境変数が設定されていない場合はプログラムを終了します。
     """
-    try:
-        subprocess.run(["ffmpeg", "-version"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    except Exception:
-        print("ffmpegがインストールされていないか、パスが設定されていません。")
+    if get_ffmpeg_path() is None:
+        print("FFmpegが見つかりません。FFmpegをインストールしてパスを設定してください。")
         sys.exit(1)
 
 
@@ -102,13 +133,13 @@ def extract_audio_from_video(video_path:str, output_dir:str):
     os.makedirs(output_dir, exist_ok=True)
     
     # FFmpegを使用して音声を抽出
+    ffmpeg_path = get_ffmpeg_path()
     subprocess.run([
-        "ffmpeg",
+        ffmpeg_path,
         "-hide_banner",
         "-i", video_path,
         "-q:a", "0",
         "-map", "a",
-    
         audio_path
     ], check=True)
 
@@ -158,8 +189,9 @@ def split_audio_file(input_path:str, output_dir:str, segment_time:int=300):
     filename_without_ext, file_extension = os.path.splitext(filename)
 
     # FFmpegを使用して音声ファイルを分割
+    ffmpeg_path = get_ffmpeg_path()
     subprocess.run([
-        "ffmpeg",
+        ffmpeg_path,
         "-hide_banner",
         "-i", input_path,  # 入力ファイル
         "-f", "segment",   # セグメント形式で出力
@@ -278,11 +310,15 @@ def main():
     os.makedirs(WORK_DIR, exist_ok=True)
     delete_files_in_directory(WORK_DIR)
 
+    # 使用するAPIを表示
+    print(f"API：{settings.get_api_type()}")
+    print()
+
     # 変換元ファイルのパスを入力してもらう
     audio_file, extension = get_target_file_path()
     print("")
 
-    # 動画ファイルの場合は音声を抽出すう
+    # 動画ファイルの場合は音声を抽出する
     if extension in VIDEO_EXTENSIONS:
         print("動画から音声を抽出します。")
         try:
@@ -317,6 +353,10 @@ def main():
 
     print("処理が完了しました。")
     print(f"出力ファイル：{os.path.join(OUTPUT_DIR, output_filename)}")
+
+    if getattr(sys, "frozen", False):
+        print("")
+        input("Enterキーを押して終了してください。")
 
 
 if __name__ == "__main__":
