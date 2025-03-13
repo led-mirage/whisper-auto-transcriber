@@ -1,4 +1,4 @@
-# Whisper Auto Transcriber
+# <img src="assets/app.ico" width="48"> Whisper Auto Transcriber
 
 Copyright (c) 2025 led-mirage
 
@@ -19,6 +19,10 @@ NVIDIAのGPUをお持ちの方は、すべての処理をローカルPCで完結
 - **音声認識**: Whisper APIを使用し、音声データをテキストに変換します。
 - **整理された出力**: 変換されたテキストは1つのファイルに統合され、`output`ディレクトリに保存します。
 
+## 💎 スクリーンショット
+
+<img src="doc/screenshot.png" width="400">
+
 ## 💎 事前準備
 
 ### APIキーの取得
@@ -32,7 +36,7 @@ NVIDIAのGPUをお持ちの方は、すべての処理をローカルPCで完結
 
 ### ソフトウェア要件
 
-Releaseに登録されているZIPの中にあるWindows用実行ファイル（audioscribe.exe）を使う場合は下記ソフトウェアを別途準備する必要はありません。
+[Releases](https://github.com/led-mirage/whisper-auto-transcriber/releases)に登録されているZIPの中にあるWindows用実行ファイル（audioscribe.exe）を使う場合は下記ソフトウェアを別途準備する必要はありません。
 
 - Python
     - Python 3.8 以上が必要です。仮想環境（venv）の利用を推奨します。
@@ -145,11 +149,11 @@ Whisperの利用料金は、変換元の音声の長さに基づいており、�
 
 誤認問題が解決できるのが一番いいのですが、いい方法が見つかっていないので申し訳ありませんがご了承ください。
 
-VirusTotalでのチェック結果は以下の通りです（2025/03/09 v3.0.0）
+VirusTotalでのチェック結果は以下の通りです（2025/03/14 v3.1.0）
 
-https://www.virustotal.com/gui/file/d18f9339bfb721e6931265112bc906df0e63377087875d04f5362c464dba527c?nocache=1
+https://www.virustotal.com/gui/file/15d93c7581826d28e886312709dbf89f15578d634b7a1a706a6abfd727b912bf?nocache=1
 
-72個中6個のアンチウィルスエンジンで検出
+71個中6個のアンチウィルスエンジンで検出
 
 ## 💎 使用しているライブラリ
 
@@ -169,10 +173,14 @@ https://www.virustotal.com/gui/file/d18f9339bfb721e6931265112bc906df0e6337708787
 
 ## 💎 バージョン履歴
 
+### 3.1.0 (2025/03/14)
+
+- 処理終了時に出力フォルダをデフォルトファイルマネージャで開くようにしました。
+
 ### 3.0.0 (2025/03/10)
 
-- Windows用実行ファイル（audioscribe.exe）を追加
-- Release ZIPにFFmpegを同梱
+- Windows用実行ファイル（audioscribe.exe）を追加しました。
+- Release ZIPにFFmpegを同梱しました。
 
 ### 2.0.0 (2025/02/27)
 
