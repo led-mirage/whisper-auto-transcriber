@@ -5,6 +5,7 @@
 # ライセンスの詳細については、このプロジェクトのLICENSEファイルを参照してください。
 
 import os
+import platform
 import shutil
 import subprocess
 import sys
@@ -16,7 +17,7 @@ from settings import Settings
 
 
 APP_NAME = "Whisper Auto Transcriber"
-APP_VERSION = "3.0.0"
+APP_VERSION = "3.1.0"
 EXE_NAME = "audioscribe.exe"
 COPYRIGHT = "© 2025 led-mirage"
 
@@ -290,6 +291,36 @@ def process_transcription_files(settings:Settings, input_files:list, output_dir:
         os.remove(file)
 
 
+def open_directory(path):
+    """
+    指定されたディレクトリをエクスプローラーで開きます。
+
+    引数:
+        path (str): 開くディレクトリのパス。
+
+    戻り値:
+        None
+    """
+    # フルパスに変換
+    path = os.path.abspath(path)
+    
+    # ファイルの場合は親ディレクトリを取得
+    if os.path.isfile(path):
+        path = os.path.dirname(path)
+    
+    # OSによって処理を分ける
+    system = platform.system()
+    
+    if system == 'Windows':
+        subprocess.run(['explorer', path])
+    elif system == 'Darwin':
+        subprocess.run(['open', path])
+    elif system == 'Linux':
+        subprocess.run(['xdg-open', path])
+    else:
+        print(f"未対応のOS: {system}")
+
+
 def main():
     """
     メインの処理を実行します。
@@ -353,6 +384,7 @@ def main():
 
     print("処理が完了しました。")
     print(f"出力ファイル：{os.path.join(OUTPUT_DIR, output_filename)}")
+    open_directory(OUTPUT_DIR)
 
     if getattr(sys, "frozen", False):
         print("")
