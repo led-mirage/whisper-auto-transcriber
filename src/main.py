@@ -17,7 +17,7 @@ from settings import Settings
 
 
 APP_NAME = "Whisper Auto Transcriber"
-APP_VERSION = "3.1.0"
+APP_VERSION = "3.1.1"
 EXE_NAME = "audioscribe.exe"
 COPYRIGHT = "© 2025 led-mirage"
 
