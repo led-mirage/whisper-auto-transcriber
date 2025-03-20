@@ -23,6 +23,8 @@ NVIDIAのGPUをお持ちの方は、すべての処理をローカルPCで完結
 
 <img src="doc/screenshot.png" width="400">
 
+<div class="page"/>
+
 ## 💎 事前準備
 
 ### APIキーの取得
@@ -32,28 +34,31 @@ NVIDIAのGPUをお持ちの方は、すべての処理をローカルPCで完結
 
 - または、Azure OpenAI Serviceの設定
     - Azure OpenAI Serviceを利用する場合は、APIキーとエンドポイントを取得してください。くわえて、**Whisperモデル**をAzure上でデプロイして使用できる状態にしてください。
-    - 2025年2月現在、日本リージョンではWhisperモデルをデプロイできないようです。動作確認にはnorthcentralusリージョンを使いました。
+    - 2025年3月現在、日本リージョンではWhisperモデルをデプロイできないようです。動作確認にはnorthcentralusリージョンを使いました。
+    - デプロイ可能なリージョンは[Microsoftのサイト](https://learn.microsoft.com/ja-jp/azure/ai-services/openai/concepts/models?tabs=global-standard%2Cstandard-audio#audio-models)でご確認ください。
 
 ### ソフトウェア要件
 
-[Releases](https://github.com/led-mirage/whisper-auto-transcriber/releases)に登録されているZIPの中にあるWindows用実行ファイル（audioscribe.exe）を使う場合は下記ソフトウェアを別途準備する必要はありません。
+[Releases](https://github.com/led-mirage/whisper-auto-transcriber/releases)に登録されているZIPの中にあるWindows用実行ファイル（audioscribe.exe）を使う場合は下記ソフトウェアを別途準備する必要はありません。FFmpegはZIPファイル中に同梱されており、このプログラムでは自動的にそれを使用するように設定されています。Pythonも実行ファイル中に組み込まれているため不要です。
 
 - Python
     - Python 3.8 以上が必要です。仮想環境（venv）の利用を推奨します。
-    - ※このソフトウェアは Python 3.12.0 で動作確認済みです。
+    - Python 3.12.0 で動作確認済みです。
 
-- ffmpeg
-    - [ffmpegのサイト](https://www.ffmpeg.org/)からダウンロードし、パスを通してください。
-    - ffmpeg version n7.1で動作確認済みです。
+- FFmpeg
+    - [FFmpegのサイト](https://www.ffmpeg.org/)からダウンロードし、パスを通してください。
+    - FFmpeg version n7.1で動作確認済みです。
+
+<div class="page"/>
 
 ## 💎 インストール
 
-### 実行ファイル（audioscribe.exe）を使う場合
+### 📌 実行ファイル（audioscribe.exe）を使う場合
 
 1. このツールを配置するディレクトリを作成します。
-2. ReleaseページからZIPファイルをダウンロードして、作成したディレクトリに解凍します。
+2. [Releases](https://github.com/led-mirage/whisper-auto-transcriber/releases)ページからZIPファイルをダウンロードして、作成したディレクトリに解凍します。
 
-### Pythonで実行する場合
+### 📌 Pythonで実行する場合
 
 1. プロジェクト用ディレクトリを作成し、移動します。
 2. GitHubからソースを取得します：
@@ -72,13 +77,27 @@ NVIDIAのGPUをお持ちの方は、すべての処理をローカルPCで完結
 
 ## 💎 設定
 
-- OpenAIを使用する場合は、環境変数`OPENAI_API_KEY`にAPIキーを設定してください。
-- Azure OpenAI Serviceを使用する場合は、`settings.ini`のAPI typeを`azure`にし、モデル、APIキー、エンドポイントの設定を行ってください。
-- `settings.ini`ではその他詳細な設定が可能です。詳しくは以下の`設定ファイル（settings.ini）`の項目を参照してください。
+OSの環境変数の設定と、必要に応じて設定ファイル（settings.ini）の設定が必要です。
+
+### 📌 OpenAIを使用する場合
+
+- OSの環境変数`OPENAI_API_KEY`にAPIキーを設定してください。
+    - settings.iniファイルの`api_key`に直接記載することも可能です。
+- settings.iniファイルのAPI typeを`openai`にします（デフォルト）。
+
+### 📌 Azure OpenAI Serviceを使用する場合
+
+- OSの環境変数`AZURE_OPENAI_API_KEY`にAPIキーを設定してください。
+    - settings.iniファイルの`api_key`に直接記載することも可能です。
+- OSの環境変数`AZURE_OPENAI_ENDPOINT`にエンドポイントを設定してください。
+    - settings.iniファイルの`endpoint`に直接記載することも可能です。
+- settings.iniファイルのAPI typeを`azure`にします。
+- 必要に応じて、モデル、APIキー、エンドポイントの設定を行ってください。
+- settings.iniファイルではその他詳細な設定が可能です。詳しくは以下の`設定ファイル（settings.ini）`の項目を参照してください。
 
 ## 💎 実行方法
 
-### 実行ファイル（audioscribe.exe）を使う場合
+### 📌 実行ファイル（audioscribe.exe）を使う場合
 
 1. 実行ファイル（audioscribe.exe）をダブルクリックして起動します：
 2. テキスト化する音声または動画ファイルのパスを入力してEnterキーを押します：
@@ -89,7 +108,7 @@ NVIDIAのGPUをお持ちの方は、すべての処理をローカルPCで完結
     結果は`output`ディレクトリ内にテキストファイルとして出力されます。  
     ファイル名は`[元のファイル名（拡張子を除く）].txt`になります。
 
-### Pythonで実行する場合
+### 📌 Pythonで実行する場合
 
 1. 起動します：
     ```
@@ -102,6 +121,8 @@ NVIDIAのGPUをお持ちの方は、すべての処理をローカルPCで完結
 3. 出力：  
     結果は`output`ディレクトリ内にテキストファイルとして出力されます。  
     ファイル名は`[元のファイル名（拡張子を除く）].txt`になります。
+
+<div class="page"/>
 
 ## 💎 設定ファイル (`settings.ini`)
 
@@ -129,6 +150,8 @@ NVIDIAのGPUをお持ちの方は、すべての処理をローカルPCで完結
 
 - **audio_segment_time**: 音声を分割する単位を秒単位で指定します。デフォルトは300秒です。
 
+<div class="page"/>
+
 ## 💎 Whisper APIの利用料金
 
 Whisperの利用料金は、変換元の音声の長さに基づいており、１分あたり`$0.006`※です。例えば１時間の音声または動画ファイルをテキスト化すると、$0.36かかります。
@@ -149,20 +172,18 @@ Whisperの利用料金は、変換元の音声の長さに基づいており、�
 
 誤認問題が解決できるのが一番いいのですが、いい方法が見つかっていないので申し訳ありませんがご了承ください。
 
-VirusTotalでのチェック結果は以下の通りです（2025/03/14 v3.1.0）
+VirusTotalでのチェック結果は[ここ](https://www.virustotal.com/gui/file/0ad75ab746c967279cefee665753353e8fc2b7655ef3324354f7c5e597050c33?nocache=1)で確認できます（2025/03/20 v3.1.1）
 
-https://www.virustotal.com/gui/file/15d93c7581826d28e886312709dbf89f15578d634b7a1a706a6abfd727b912bf?nocache=1
-
-71個中6個のアンチウィルスエンジンで検出
+73個中2個のアンチウィルスエンジンで検出
 
 ## 💎 使用しているライブラリ
 
-### 🔖 openai 1.63.2
-ホームページ： https://github.com/openai/openai-python  
+### 🔖 openai 1.67.0
+ホームページ： <https://github.com/openai/openai-python>  
 ライセンス： Apache License 2.0
 
 ### 🔖 FFmpeg v7.1
-ホームページ： https://ffmpeg.org/  
+ホームページ： <https://ffmpeg.org/>  
 ライセンス： GNU Lesser General Public License (LGPL) v2.1
 
 ## 💎 ライセンス
@@ -171,7 +192,15 @@ https://www.virustotal.com/gui/file/15d93c7581826d28e886312709dbf89f15578d634b7a
 
 本アプリケーションは MITライセンス の下で公開されています。詳細については、プロジェクトに含まれる LICENSE ファイルを参照してください。
 
+<div class="page"/>
+
 ## 💎 バージョン履歴
+
+### 3.1.1 (2025/03/20)
+
+- 実行ファイルにメタデータを埋め込むようにしました。
+- openaiパッケージを1.67.0に更新しました。
+- 機能の変更はありません。
 
 ### 3.1.0 (2025/03/14)
 

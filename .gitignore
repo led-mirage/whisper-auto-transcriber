@@ -173,3 +173,6 @@ cython_debug/
 # my settings
 workdir/
 output/
+doc_private/
+version-create.bat
+version.txt

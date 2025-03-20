@@ -1,0 +1,12 @@
+Version: 3.1.1
+CompanyName: led-mirage
+FileDescription: 音声テキスト化ツール
+InternalName: AudioScribe
+LegalCopyright: © 2025 led-mirage
+OriginalFilename: audioscribe.exe
+ProductName: Whisper Auto Transcriber
+Translation:
+  - langID: 0
+    charsetID: 1200
+  - langID: 1041
+    charsetID: 1200
